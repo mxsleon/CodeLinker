@@ -5,13 +5,15 @@
 @Author  ：mxsleon
 @Website ：https://mxsleon.com
 """
-from datetime import datetime, timezone
+from datetime import datetime
 import platform
 
 import pytz
-from fastapi import APIRouter, status
+from fastapi import APIRouter
 import psutil
 import os
+
+from starlette import status
 
 from core.config import settings
 from schemas.health_status import StatusResponse, StatusEnum
@@ -32,9 +34,20 @@ def get_system_info() -> dict:
     }
 
 
-@router.get("/health", response_model=StatusResponse)
+@router.get("/health", response_model=StatusResponse,
+            status_code=status.HTTP_200_OK,
+            summary="服务器运行状态检查",
+            description="""
+此接口用于：
+**检查服务器运行状态**
+
+**权限要求**:
+
+**注意**:
+                """
+            )
 async def health_check():
-    """基础健康检查 (跨平台)"""
+    """基础健康检查"""
     response = StatusResponse(
         status=StatusEnum.HEALTHY,
         timestamp=datetime.now(pytz.timezone(settings.TIMEZONE)).replace(tzinfo=None),
