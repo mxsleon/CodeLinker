@@ -1,18 +1,15 @@
 # main.py
 
 import uvicorn
-from db.database import get_db_pool, query_sql, init_db, close_db
-from aiomysql import Pool
-import asyncio
+from db.database import  init_db, close_db
 import fastapi_cdn_host
 from contextlib import asynccontextmanager
 from api import routers
 from core.config import settings
-from fastapi import FastAPI, Request
+from fastapi import  Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.openapi.docs import get_redoc_html
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 

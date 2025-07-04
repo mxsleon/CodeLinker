@@ -53,7 +53,7 @@ class UserBase(BaseModel):
         description="用户登录名，在用户表中唯一",
         min_length=1,
         max_length=50,
-        examples=["孟祥帅","mengxiangshuai"]
+        examples=["mxs","mxsleon"]
     )
 
 
@@ -195,7 +195,7 @@ class UserResponse(UserBase):
         json_schema_extra = {
             "example": {
                 "user_id": "550e8400-e29b-41d4-a716-446655440000",
-                "username": "孟祥帅",
+                "username": "mxs",
                 "role": "管理员",
                 "is_admin": 1,
                 "is_active": 1,

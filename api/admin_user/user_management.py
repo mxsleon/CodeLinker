@@ -47,7 +47,7 @@ router = APIRouter(
               "content": {"application/json": {"example": {"detail": "string"}}}},
         422: {"description": "请求参数验证失败", "content": {"application/json": {"example": {"detail": [
             {"type": "missing", "loc": ["body", "password"], "msg": "Field required",
-             "input": {"username": "孟祥帅", "is_active": 1, "role": "管理员"}}]}}}}}
+             "input": {"username": "mxs", "is_active": 1, "role": "管理员"}}]}}}}}
 )
 async def create_user(user_data: UserCreate,
                       pool: Pool = Depends(get_db_pool),
@@ -313,7 +313,7 @@ async def update_user_info(
     role_num = RoleEnum(current_user_role).weight
     role_enum = RoleEnum(current_user_role)
 
-
+    # 过滤普通用户以及防止越权提权
     if role_num <= 1 or RoleEnum(new_role).weight >= role_num:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -327,6 +327,7 @@ async def update_user_info(
             detail="至少需要提供一个更新参数：new_role, activate 或 clean_locked"
         )
 
+    # 验证传入用户是否正确
     sql_put_user_info = get_user_info_sql(id = user_id,username=username)
     result = await execute_sql_with_params(pool=pool, sql=sql_put_user_info, params=None, fetch=True)
     print(result)
@@ -335,6 +336,10 @@ async def update_user_info(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="用户不存在"
         )
+    # 防止操作比自己大的用户
+    # 拆解被操作者信息
+
+
 
 
 

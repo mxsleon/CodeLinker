@@ -162,5 +162,5 @@ WHERE
     return render_sql_template(template, context)
 
 if __name__ == "__main__":
-    sql = update_user_info_sql(id='19f7adca-50d2-11f0-b677-08bfb83e31a7',username='孟祥帅',is_active=StatusEnum.INACTIVE)
+    sql = update_user_info_sql(id='19f7adca-50d2-11f0-b677-08bfb83e31a7',username='mxs',is_active=StatusEnum.INACTIVE)
     print(sql)
