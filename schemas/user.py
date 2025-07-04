@@ -207,11 +207,58 @@ class UserResponse(UserBase):
             }
         })
 
+#     # 7. 生成JWT令牌
+#     access_token = create_access_token(
+#         data={"sub": username, "user_id": user_result.get('id'),'role':user_result.get('role'),'admin': True if user_result.get('is_admin') == 1 else False}
+#     )
+
+class TokenUser(BaseModel):
+    sub :str = Field(
+        ...,
+        title="用户名",
+        description="用户登录名，在用户表中唯一",
+        min_length=1,
+        max_length=50,
+        examples=["mxs","mxsleon"]
+    )
+
+    user_id : str =  Field(
+        ...,
+        alias="user_id",
+        title="用户UUID",
+        description="用户UUID",
+    )
+
+    role : str = Field(
+        ...,
+        title="用户角色",
+        description="用户角色",
+    )
+
+    admin : bool = Field(
+        ...,
+        title="是否为管理员",
+        description="是否为管理员",
+    )
+
+    @property
+    def role_enum(self) -> RoleEnum:
+        return RoleEnum(self.role)
+
+
+
+
+
 
 if __name__ == "__main__":
 
-    a = RoleEnum.SUPER_ADMIN
-    l = a.get_roles_with_lower_weight()
-    for i in l:
-        print(i.value)
 
+    data = {"sub": 'username', "user_id": 'user_result.get('')', 'role': '用户',
+            'admin': True}
+
+    cur_user = TokenUser(**data)
+
+    print(cur_user)
+
+    print(cur_user.role_enum,type(cur_user.role_enum))
+    print(cur_user.role_enum.weight)

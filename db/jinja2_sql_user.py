@@ -1,6 +1,8 @@
 # db/jinja2_sql_user.py
 
 from typing import Literal
+
+from core.security import get_password_hash
 from db.db_config import db_settings
 from db.jinja2_env import render_sql_template
 from schemas.user import RoleEnum, StatusEnum
@@ -161,6 +163,47 @@ WHERE
     # 渲染 SQL 模板
     return render_sql_template(template, context)
 
+
+
+def update_user_forget_password_sql(
+        id: str,
+        username: str,
+        clean_locked: bool = False
+):
+    """
+
+    :param id:
+    :param username:
+    :param clean_locked:
+    :return:
+    """
+    password_hash = get_password_hash(username)
+    table_name = db_settings.USER_TABLE
+    template = """
+UPDATE {{ table_name | sql_identifier }}
+SET
+    password_hash =  {{ password_hash | sql_value }},
+    {% if clean_locked %}
+    `login_attempts` = 0,
+    `locked_until` = NULL,
+    {% endif %}
+    updated_at = NOW()
+WHERE
+    id = {{ id | sql_value }}
+    AND username = {{ username | sql_value }};
+"""
+    context = {
+        'table_name': table_name,
+        'id': id,
+        'username': username,
+        'password_hash': password_hash,
+        'clean_locked': clean_locked
+    }
+
+    # 渲染 SQL 模板
+    return render_sql_template(template, context)
+
+
 if __name__ == "__main__":
-    sql = update_user_info_sql(id='19f7adca-50d2-11f0-b677-08bfb83e31a7',username='mxs',is_active=StatusEnum.INACTIVE)
+    sql = update_user_forget_password_sql(id='19f7adca-50d2-11f0-b677-08bfb83e31a7',username='mxs')
     print(sql)

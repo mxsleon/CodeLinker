@@ -7,8 +7,8 @@ from core.security import get_current_user, get_password_hash
 from db.database import get_db_pool, query_sql_with_params, execute_sql_with_params, query_sql
 from db.jinja2_sql_auth import get_sql_query_user
 from db.jinja2_sql_user import insert_into_new_user, get_user_info_sql, get_user_info_sql_all, get_user_info_sql_other, \
-    update_user_info_sql
-from schemas.user import UserResponse, UserCreate, RoleEnum, StatusEnum
+    update_user_info_sql, update_user_forget_password_sql
+from schemas.user import UserResponse, UserCreate, RoleEnum, StatusEnum, TokenUser
 
 # 创建路由
 router = APIRouter(
@@ -292,6 +292,7 @@ async def soft_delete_user(
 - 必须同时提供用户ID和用户名，且两者必须匹配
 - 至少需要提供以下参数之一：`new_role`、`activate` 或 `clean_locked`
 - 操作成功后返回更新后的用户完整信息
+- 如需封禁用户需要delete_user接口
     """,
     responses={
         200: {"description": "用户更新成功"},
@@ -302,23 +303,39 @@ async def soft_delete_user(
 async def update_user_info(
     user_id: str = Query(..., title="用户ID", description="要更新的用户ID"),
     username: str = Query(..., title="用户名", description="要更新的用户名"),
-    new_role: Literal["用户", "管理员"] = Query(None, title="角色更新", description="要设置的新角色"),
-    activate: Optional[bool] = Query(None, title="激活状态", description="设为True激活用户"),
+    new_role: Literal["用户", "管理员"] = Query(None, title="角色更新", description="要设置的新角色，非超管请勿传参"),
+    activate: Optional[bool] = Query(True, title="激活状态", description="设为True激活用户，False则不改变用户状态"),
     clean_locked: Optional[bool] = Query(None, title="清除锁定", description="设为True清除登录失败标记"),
     pool: Pool = Depends(get_db_pool),
     current_user: dict = Depends(get_current_user)
 ):
     # 权限拆解
-    current_user_role = current_user.get('role')
-    role_num = RoleEnum(current_user_role).weight
-    role_enum = RoleEnum(current_user_role)
+    cur_user = TokenUser(**current_user)
+    cur_role_num = cur_user.role_enum.weight
+    cur_role_enum = cur_user.role_enum
 
-    # 过滤普通用户以及防止越权提权
-    if role_num <= 1 or RoleEnum(new_role).weight >= role_num:
+    # 过滤普通用户
+    if cur_role_num <= 1:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="无权限操作"
         )
+
+    # 防止非超管进行角色定义
+    if new_role and cur_role_enum is not RoleEnum.SUPER_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="无权限操作"
+        )
+
+    # 防止操作自己
+    if user_id == cur_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="传入的参数无效"
+        )
+
+
 
     # 验证至少有一个更新参数
     if new_role is None and activate is None and clean_locked is None:
@@ -330,19 +347,111 @@ async def update_user_info(
     # 验证传入用户是否正确
     sql_put_user_info = get_user_info_sql(id = user_id,username=username)
     result = await execute_sql_with_params(pool=pool, sql=sql_put_user_info, params=None, fetch=True)
-    print(result)
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="用户不存在"
         )
-    # 防止操作比自己大的用户
-    # 拆解被操作者信息
+
+
+    # 进行参数转化
+    if new_role is None :
+        role = None
+    else :
+        role = RoleEnum(new_role)
+    if  activate is None or activate is False:
+        is_active = None
+    else :
+        is_active = StatusEnum(1)
+    if clean_locked is None or clean_locked is False:
+        clean_locked = False
+    else :
+        clean_locked = True
+    # 进行sql拼接
+    update_sql =  update_user_info_sql(id = user_id,username=username,
+                                       role=role,
+                                       is_active=is_active,
+                                       clean_locked=clean_locked)
+
+    user_update_sql = await execute_sql_with_params(pool=pool, sql=update_sql, params=None, fetch=False)
+
+    if user_update_sql == 1 :
+        sql_get_other = get_user_info_sql_other(username=username,role=cur_role_enum)
+        list_data_user_info = await query_sql(pool=pool, sql=sql_get_other)
+        return UserResponse(**list_data_user_info[0])
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="未知原因失败，请重试"
+        )
 
 
 
+# forget-password
+@router.put(
+    path="/forget_password",
+    status_code=status.HTTP_200_OK,
+    response_model=UserResponse,
+    summary="清除用户密码",
+    description="""
+### 清除用户密码
+此接口用于：
+1. **清除用户密码**：仅当用户忘记密码时，请管理员调用此接口进行清除密码，清楚后，密码与账户一致
+2. **清除登录失败标记**：重置登录尝试次数和解锁时间，通知清楚登录失败标记与时间
+**权限要求**:
+- 超级管理员：只有超级管理员可以调用此接口
+
+**注意**:
+- 必须同时提供用户ID和用户名，且两者必须匹配
+- 操作成功后返回更新后的用户完整信息
+    """,
+    responses={
+        200: {"description": "用户更新成功"},
+        404: {"description": "用户不存在"},
+        403: {"description": "无权限操作"}}
+)
+async def update_user_forget_password(
+    user_id: str = Query(..., title="用户ID", description="要更新的用户ID"),
+    username: str = Query(..., title="用户名", description="要更新的用户名"),
+    clean_locked: Optional[bool] = Query(True, title="清除锁定", description="设为True清除登录失败标记"),
+    pool: Pool = Depends(get_db_pool),
+    current_user: dict = Depends(get_current_user)
+):
+
+    # 权限拆解
+    cur_user = TokenUser(**current_user)
+    cur_role_enum = cur_user.role_enum
 
 
+    # 防止非超管进行调用
+    if cur_role_enum is not RoleEnum.SUPER_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="无权限操作"
+        )
 
 
+    # 验证传入用户是否正确
+    sql_put_user_info = get_user_info_sql(id = user_id,username=username)
+    result = await execute_sql_with_params(pool=pool, sql=sql_put_user_info, params=None, fetch=True)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="用户不存在"
+        )
+
+
+    # 进行sql拼接
+    update_sql =  update_user_forget_password_sql(id = user_id,username=username,clean_locked=clean_locked)
+    user_update_sql = await execute_sql_with_params(pool=pool, sql=update_sql, params=None, fetch=False)
+
+    if user_update_sql == 1 :
+        sql_get_other = get_user_info_sql_other(username=username,role=cur_role_enum)
+        list_data_user_info = await query_sql(pool=pool, sql=sql_get_other)
+        return UserResponse(**list_data_user_info[0])
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="未知原因失败，请重试"
+        )
 
