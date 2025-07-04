@@ -1,4 +1,11 @@
-# api/admin_user.py
+# -*- coding: UTF-8 -*-
+"""
+@File    ：api/admin_user/user_management.py
+@Date    ：2025/7/4 16:36
+@Author  ：mxsleon
+@Website ：https://mxsleon.com
+"""
+
 from typing import Literal, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query

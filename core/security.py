@@ -1,7 +1,11 @@
 # core/security.py
+from zoneinfo import ZoneInfo
 
 import bcrypt
 from datetime import datetime, timedelta,timezone
+
+import pytz
+
 from core.config import settings
 
 
@@ -42,8 +46,7 @@ def get_password_hash(password: str,rounds: int = settings.PASSWORD_HASH_ROUNDS)
 def create_access_token(data: dict) -> str:
     """创建JWT访问令牌"""
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=settings.JWT_ACCESS_EXPIRE_MINUTES)
-    # expire = datetime.now().replace(tzinfo=None) + timedelta(seconds=1)
+    expire =  datetime.now(pytz.timezone(settings.TIMEZONE)) + timedelta(minutes=settings.JWT_ACCESS_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(
         to_encode,
@@ -149,8 +152,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 #         print(f"验证失败: {e}")
 
 if __name__ == "__main__":
-    # # pass
-    print(get_password_hash('mxs123'))
+    pass
     #
     # print(verify_password("mxs123",'$2b$12$rHgnhosK1vE4Gaasa3Trk.6QGRVFNc4IVEDghTY6JsH5fMiaQJ7oK'))
     # required_fields = ["sub", "user_id", "admin", "role"]
@@ -166,3 +168,11 @@ if __name__ == "__main__":
     #
     # # 运行同步测试
     # asyncio.run(test_token_generation_async())
+    #
+    # from datetime import datetime, timedelta
+    # import pytz
+    #
+    # # 假设settings.TIMEZONE是IANA时区名称，例如 "Asia/Shanghai"
+    # expire = datetime.now(pytz.timezone(settings.TIMEZONE)) + timedelta(minutes=settings.JWT_ACCESS_EXPIRE_MINUTES)
+    #
+    # print(expire)
