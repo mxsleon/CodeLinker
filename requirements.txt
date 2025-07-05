@@ -7,3 +7,5 @@ python-jose~=3.5.0
 Jinja2~=3.0.0
 bcrypt~=4.3.0
 starlette~=0.46.2
+cryptography>=41.0.0
+aiomysql>=0.2.0
