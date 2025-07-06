@@ -31,18 +31,18 @@ router = APIRouter(
     path="/change_password",
     status_code=status.HTTP_200_OK,
     response_model=UserResponse,
-    summary="清除用户密码",
+    summary="用户修改账户名或密码",
     description="""
-### 清除用户密码
-此接口用于：
-1. **清除用户密码**：仅当用户忘记密码时，请管理员调用此接口进行清除密码，清楚后，密码与账户一致
-2. **清除登录失败标记**：重置登录尝试次数和解锁时间，通知清楚登录失败标记与时间
+### 用户修改账户名或密码
+此接口用于（用户调用）：
+1. **修改用户账户名或密码**：用户可以调用此接口进行账户名和密码的修改
+
 **权限要求**:
-- 超级管理员：只有超级管理员可以调用此接口
+- 无
 
 **注意**:
-- 必须同时提供用户ID和用户名，且两者必须匹配
-- 操作成功后返回更新后的用户完整信息
+- 必须再次验证用户名和密码，通过后，可更新
+- 传递参数时，如不传参数，则默认不变，新的用户名和密码不可同时为空
     """,
     responses={
         200: {"description": "用户更新成功"},
@@ -50,9 +50,8 @@ router = APIRouter(
         403: {"description": "无权限操作"}}
 )
 async def update_user_self_password(
-    user_id: str = Query(..., title="用户ID", description="要更新的用户ID"),
-    username: str = Query(..., title="用户名", description="要更新的用户名"),
-    clean_locked: Optional[bool] = Query(True, title="清除锁定", description="设为True清除登录失败标记"),
+    username: str = Query(..., title="用户名", description="用户名"),
+    password:str = Query(..., title="用户名", description="用户名"),
     pool: Pool = Depends(get_db_pool),
     current_user: dict = Depends(get_current_user)
 ):
