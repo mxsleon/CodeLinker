@@ -42,7 +42,7 @@ app = FastAPI(
     docs_url=None,  # 禁用默认的/docs路由
 )
 
-fastapi_cdn_host.patch_docs(app)
+
 
 # 添加Gzip中间件压缩
 app.add_middleware(GZipMiddleware, minimum_size=500)

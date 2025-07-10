@@ -50,9 +50,16 @@ router = APIRouter(
         403: {"description": "无权限操作"}}
 )
 async def update_user_self_password(
-    username: str = Query(..., title="用户名", description="用户名"),
-    password:str = Query(..., title="密码", description="密码"),
+    password:str = Query(..., title="旧密码", description="旧密码"),
     pool: Pool = Depends(get_db_pool),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    new_user_name:str = Query(None, title="新用户名", description="新用户名"),
+    new_password:str = Query(None, title="新密码", description="新密码"),
+
 ):
-    pass
+    # 权限拆解
+    cur_user = TokenUser(**current_user)
+    cur_user_id = cur_user.user_id
+    cur_user_name = cur_user.sub
+
+    # 验证旧密码是否正确
