@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     PASSWORD_HASH_ROUNDS: int = 12
 
     # 7. 日志配置
-    LOG_LEVEL: str = "DEBUG"
+    LOG_LEVEL: str = "debug"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     LOG_FILE: Optional[str] = "app.log"
 

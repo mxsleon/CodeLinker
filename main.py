@@ -3,7 +3,6 @@
 
 import uvicorn
 from db.database import  init_db, close_db
-import fastapi_cdn_host
 from contextlib import asynccontextmanager
 from api import routers
 from core.config import settings
@@ -94,5 +93,6 @@ if __name__ == "__main__":
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.RELOAD,
-        workers=settings.WORKERS
+        workers=settings.WORKERS,
+        log_level=settings.LOG_LEVEL,
     )

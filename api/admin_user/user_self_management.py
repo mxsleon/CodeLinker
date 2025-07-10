@@ -51,7 +51,7 @@ router = APIRouter(
 )
 async def update_user_self_password(
     username: str = Query(..., title="用户名", description="用户名"),
-    password:str = Query(..., title="用户名", description="用户名"),
+    password:str = Query(..., title="密码", description="密码"),
     pool: Pool = Depends(get_db_pool),
     current_user: dict = Depends(get_current_user)
 ):
