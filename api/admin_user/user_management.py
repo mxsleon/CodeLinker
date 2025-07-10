@@ -27,7 +27,7 @@ router = APIRouter(
 
 
 @router.post(
-    "/create",
+    "/create_new_user",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="创建新用户",
@@ -336,7 +336,7 @@ async def update_user_info(
         )
 
     # 防止操作自己
-    if user_id == cur_user.user_id:
+    if user_id == cur_user.user_id and cur_role_enum is not RoleEnum.SUPER_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="传入的参数无效"

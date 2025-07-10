@@ -152,27 +152,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 #         print(f"验证失败: {e}")
 
 if __name__ == "__main__":
-    pass
-    #
-    # print(verify_password("mxs123",'$2b$12$rHgnhosK1vE4Gaasa3Trk.6QGRVFNc4IVEDghTY6JsH5fMiaQJ7oK'))
-    # required_fields = ["sub", "user_id", "admin", "role"]
-    #
-    # data = {
-    #     'sub':'mxs',
-    #     'admin':True,
-    #     'role': 1,
-    #     'user_id':'123'
-    #
-    # }
-    #
-    #
-    # # 运行同步测试
-    # asyncio.run(test_token_generation_async())
-    #
-    # from datetime import datetime, timedelta
-    # import pytz
-    #
-    # # 假设settings.TIMEZONE是IANA时区名称，例如 "Asia/Shanghai"
-    # expire = datetime.now(pytz.timezone(settings.TIMEZONE)) + timedelta(minutes=settings.JWT_ACCESS_EXPIRE_MINUTES)
-    #
-    # print(expire)
+    pass_word_hash = get_password_hash(password='mxs123')
+    print(pass_word_hash)
+

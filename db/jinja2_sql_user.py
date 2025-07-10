@@ -1,4 +1,10 @@
-# db/jinja2_sql_user.py
+# -*- coding: UTF-8 -*-
+"""
+@File    ：api/admin_user/user_self_management.py
+@Date    ：2025/7/4
+@Author  ：mxsleon
+@Website ：https://mxsleon.com
+"""
 
 from typing import Literal
 
@@ -204,6 +210,60 @@ WHERE
     return render_sql_template(template, context)
 
 
+def count_username_sql(username: str):
+    """
+
+    :param username:传入用户名，拼接查询用户名个数sql
+    :return:返回查询用户名个数的sql
+    """
+    table_name = db_settings.USER_TABLE
+
+    template = """
+SELECT COUNT(1) as user_num
+FROM {{ table_name | sql_identifier }}
+WHERE username = {{ username | sql_value }};"""
+
+    context = {
+        'table_name': table_name,
+        'username': username
+    }
+    # 渲染 SQL 模板
+    return render_sql_template(template, context)
+
+
+def update_self_management_sql(
+        id: str,
+        new_username : str = None,
+        new_password:str = None,
+):
+    """
+
+    :param id:
+    :param new_username:
+    :param new_password:
+    :return:
+    """
+    table_name = db_settings.USER_TABLE
+
+    template = """
+UPDATE {{ table_name | sql_identifier }}
+SET
+    {% if new_username %}username =  {{ new_username | sql_value }},{% endif %}
+    {% if new_password %}password_hash =  {{ new_password | sql_value }},{% endif %}
+    updated_at = NOW()
+WHERE
+    id = {{ id | sql_value }};"""
+
+    context = {
+        'table_name': table_name,
+        'id': id,
+        'new_username': new_username,
+        'new_password':new_password
+    }
+
+    # 渲染 SQL 模板
+    return render_sql_template(template, context)
+
 if __name__ == "__main__":
-    sql = update_user_forget_password_sql(id='19f7adca-50d2-11f0-b677-08bfb83e31a7',username='mxs')
+    sql = update_self_management_sql(id='19f7adca-50d2-11f0-b677-08bfb83e31a7',new_username='123')
     print(sql)
