@@ -26,7 +26,7 @@ router = APIRouter(
 
 
 
-# 修改密码
+
 @router.put(
     path="/change_password",
     status_code=status.HTTP_200_OK,
@@ -46,20 +46,38 @@ router = APIRouter(
     """,
     responses={
         200: {"description": "用户更新成功"},
-        404: {"description": "用户不存在"},
-        403: {"description": "无权限操作"}}
+        401: {"description": "旧密码错误"},
+        400: {"description": "传入参数错误"},
+        403: {"description": "账户已被禁用"},
+        423: {"description": "账户已锁定"}}
 )
 async def update_user_self_password(
-    password:str = Query(..., title="旧密码", description="旧密码"),
-    pool: Pool = Depends(get_db_pool),
-    current_user: dict = Depends(get_current_user),
-    new_user_name:str = Query(None, title="新用户名", description="新用户名"),
-    new_password:str = Query(None, title="新密码", description="新密码"),
-
+        password: str = Query(..., title="旧密码", description="用于验证身份的旧密码"),
+        pool: Pool = Depends(get_db_pool),
+        current_user: dict = Depends(get_current_user),
+        new_user_name: str = Query(None, title="新用户名", description="需要更新的用户名"),
+        new_password: str = Query(None, title="新密码", description="需要设置的新密码"),
 ):
     # 权限拆解
     cur_user = TokenUser(**current_user)
     cur_user_id = cur_user.user_id
     cur_user_name = cur_user.sub
 
+    # 验证传入
+    if new_user_name is None and  new_password is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="至少需要提供一个更新参数：new_user_name,new_password"
+        )
+
+
     # 验证旧密码是否正确
+    sql_put_user_info = get_user_info_sql(id = cur_user_id,username=cur_user_id)
+    result = await execute_sql_with_params(pool=pool, sql=sql_put_user_info, params=None, fetch=True)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="用户不存在"
+        )
+
+    get_user_info_sql()
