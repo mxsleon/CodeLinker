@@ -264,6 +264,8 @@ WHERE
     # 渲染 SQL 模板
     return render_sql_template(template, context)
 
+
+
 if __name__ == "__main__":
     sql = update_self_management_sql(id='19f7adca-50d2-11f0-b677-08bfb83e31a7',new_username='123')
     print(sql)

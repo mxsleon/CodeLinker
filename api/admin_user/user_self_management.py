@@ -63,6 +63,7 @@ async def update_user_self_password(
     cur_user = TokenUser(**current_user)
     cur_user_id = cur_user.user_id
     cur_user_name = cur_user.sub
+    cur_user_role = cur_user.role_enum
 
     # 验证传入
     if new_user_name is None and  new_password is None:
@@ -74,10 +75,16 @@ async def update_user_self_password(
 
     # 验证旧密码是否正确
     # 1. 查询用户
-    query_sql = get_sql_query_user(cur_user_name)
+    query_self_info_sql = get_sql_query_user(cur_user_name)
 
     # 2. 执行查询 - 必须使用await等待异步操作完成
-    user_result = await query_sql_with_params(pool, sql=query_sql, params=None)
+    user_result = await query_sql_with_params(pool, sql=query_self_info_sql, params=None)
+
+    if user_result is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='账户已更新，请重新登录'
+        )
 
     # 5. 检查账户状态
     if user_result.get('is_active') == 0:
@@ -146,12 +153,29 @@ async def update_user_self_password(
             )
 
     # 构建密码哈希值
-    new_password_hash = get_password_hash(str(new_password))
+    if new_password:
+        new_password_hash = get_password_hash(str(new_password))
+    else:
+        new_password_hash = None
     # 拼接sql
     update_user_sql = update_self_management_sql(id=cur_user_id,new_username=new_user_name,new_password=new_password_hash)
+
     # 执行sql
-    data_update_user_sql =  await execute_sql_with_params(pool, sql=sql_verify_password,fetch=True)
-    print(data_update_user_sql)
+    data_update_user_sql =  await execute_sql_with_params(pool, sql=update_user_sql,fetch=False)
+
+    # 已经修改成功，并返回影响行数 1
+    if int(data_update_user_sql) == 1:
+        if new_user_name:
+            sql_get_self_info = get_user_info_sql_other(username=new_user_name, role=cur_user_role)
+        else:
+            sql_get_self_info = get_user_info_sql_other(username=cur_user_name, role=cur_user_role)
+        list_data_self_info = await query_sql(pool=pool, sql=sql_get_self_info)
+        return UserResponse(**list_data_self_info[0])
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="未知原因失败，请重试"
+        )
 
 
 
