@@ -8,10 +8,12 @@ from typing import Optional, List, Dict, Any
 
 class Settings(BaseSettings):
     # 1. 应用基础配置
-    APP_TITLE:str = 'CodeLinker API'
+    APP_TITLE: str = "CodeLinker API"
     APP_DESCRIPTION: str = "编码管家API接口文档"
-    APP_VERSION:str = '0.3'
-    ENV: str = Field("development", description="运行环境: development, staging, production")
+    APP_VERSION: str = "0.3"
+    ENV: str = Field(
+        "development", description="运行环境: development, staging, production"
+    )
     DEBUG: bool = True
     TIMEZONE: str = "Asia/Shanghai"
 
@@ -33,7 +35,6 @@ class Settings(BaseSettings):
     DB_POOL_MAX: int = 10
     DB_POOL_RECYCLE: int = 300  # 连接回收时间(秒)
     DB_AUTOCOMMIT: bool = True
-
 
     # # 数据库连接URL (自动生成)
     # DATABASE_URL: Optional[str] = None
@@ -69,7 +70,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_EXPIRE_MINUTES: int = 1440  # 访问令牌有效期(分钟)，24小时
     JWT_REFRESH_EXPIRE_DAYS: int = 7  # 刷新令牌有效期(天)
-    JWT_VERIFY_EXP: bool = True # 是否验证令牌过期
+    JWT_VERIFY_EXP: bool = True  # 是否验证令牌过期
 
     # 6. 安全配置
     SECURE_COOKIES: bool = False
@@ -101,10 +102,7 @@ class Settings(BaseSettings):
 
     # Pydantic 配置
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=True,
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
     )
 
 

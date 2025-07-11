@@ -17,11 +17,12 @@ DB_CONFIG = {
     "minsize": settings.DB_POOL_MIN,
     "maxsize": settings.DB_POOL_MAX,
     "autocommit": settings.DB_AUTOCOMMIT,
-    "pool_recycle": settings.DB_POOL_RECYCLE  # 连接回收时间
+    "pool_recycle": settings.DB_POOL_RECYCLE,  # 连接回收时间
 }
 
 
 pool: Optional[Pool] = None
+
 
 async def get_db_pool() -> Pool:
     """获取数据库连接池"""
@@ -29,26 +30,28 @@ async def get_db_pool() -> Pool:
         raise RuntimeError("数据库连接池未初始化")
     return pool
 
+
 async def init_db() -> None:
     """初始化数据库连接池"""
     global pool
     try:
-        print('🔄 正在初始化数据库连接池...')
+        print("🔄 正在初始化数据库连接池...")
         pool = await aiomysql.create_pool(**DB_CONFIG)
-        print('✅ 数据库连接池初始化完成')
+        print("✅ 数据库连接池初始化完成")
     except Exception as e:
         print(f"❌ 数据库连接池初始化失败: {str(e)}")
         raise
+
 
 async def close_db() -> None:
     """关闭数据库连接池"""
     global pool
     if pool:
-        print('🛑 正在关闭数据库连接池...')
+        print("🛑 正在关闭数据库连接池...")
         pool.close()
         await pool.wait_closed()
         pool = None
-        print('✅ 数据库连接池已关闭')
+        print("✅ 数据库连接池已关闭")
 
 
 # 执行sql查询异步函数
@@ -61,11 +64,7 @@ async def query_sql(pool: Pool, sql: str):
             return await cursor.fetchall()
 
 
-async def query_sql_with_params(
-    pool: Pool,
-    sql: str,
-    params: list = None
-):
+async def query_sql_with_params(pool: Pool, sql: str, params: list = None):
     """
     执行参数化SQL查询（使用位置参数）
 
@@ -86,10 +85,7 @@ async def query_sql_with_params(
 
 
 async def execute_sql_with_params(
-        pool: Pool,
-        sql: str,
-        params: list = None,
-        fetch: bool = False
+    pool: Pool, sql: str, params: list = None, fetch: bool = False
 ):
     """
     执行参数化SQL操作（使用位置参数）

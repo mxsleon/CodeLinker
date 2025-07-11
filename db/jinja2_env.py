@@ -6,11 +6,13 @@ class SafeSQLEnvironment(Environment):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.filters.update({
-            'sql_identifier': self.sql_identifier_filter,
-            'sql_value': self.sql_value_filter,
-            'sql_expression': self.sql_expression_filter
-        })
+        self.filters.update(
+            {
+                "sql_identifier": self.sql_identifier_filter,
+                "sql_value": self.sql_value_filter,
+                "sql_expression": self.sql_expression_filter,
+            }
+        )
 
     @staticmethod
     def sql_identifier_filter(value):
@@ -40,8 +42,10 @@ class SafeSQLEnvironment(Environment):
         """处理 SQL 表达式（如 login_attempts + 1）"""
         return str(value)
 
+
 # 全局 SQL 环境实例
 SQL_ENV = SafeSQLEnvironment(loader=BaseLoader())
+
 
 def render_sql_template(template_str, data):
     """

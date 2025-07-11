@@ -2,14 +2,14 @@
 from zoneinfo import ZoneInfo
 
 import bcrypt
-from datetime import datetime, timedelta,timezone
+from datetime import datetime, timedelta, timezone
 
 import pytz
 
 from core.config import settings
 
 
-def verify_password( password: str, hashed_password: str) -> bool:
+def verify_password(password: str, hashed_password: str) -> bool:
     """
     验证密码是否与哈希值匹配
 
@@ -21,14 +21,16 @@ def verify_password( password: str, hashed_password: str) -> bool:
         如果匹配返回True，否则返回False
     """
     # 将明文密码和哈希密码转换为字节
-    password_bytes = password.encode('utf-8')
-    hashed_bytes = hashed_password.encode('utf-8')
+    password_bytes = password.encode("utf-8")
+    hashed_bytes = hashed_password.encode("utf-8")
 
     # 验证密码
     return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
-def get_password_hash(password: str,rounds: int = settings.PASSWORD_HASH_ROUNDS) -> str:
+def get_password_hash(
+    password: str, rounds: int = settings.PASSWORD_HASH_ROUNDS
+) -> str:
     """
 
     :param password: 传入明文字符串
@@ -36,24 +38,22 @@ def get_password_hash(password: str,rounds: int = settings.PASSWORD_HASH_ROUNDS)
     :return: 返回加密字符串
     """
     # 将明文密码转换为字节
-    password_bytes = password.encode('utf-8')
+    password_bytes = password.encode("utf-8")
     # 生成盐值并进行哈希
     salt = bcrypt.gensalt(rounds=rounds)
     hashed_bytes = bcrypt.hashpw(password_bytes, salt)
     # 将字节转换为字符串返回
-    return hashed_bytes.decode('utf-8')
+    return hashed_bytes.decode("utf-8")
+
 
 def create_access_token(data: dict) -> str:
     """创建JWT访问令牌"""
     to_encode = data.copy()
-    expire =  datetime.now(pytz.timezone(settings.TIMEZONE)) + timedelta(minutes=settings.JWT_ACCESS_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(
-        to_encode,
-        settings.JWT_SECRET,
-        algorithm=settings.JWT_ALGORITHM
+    expire = datetime.now(pytz.timezone(settings.TIMEZONE)) + timedelta(
+        minutes=settings.JWT_ACCESS_EXPIRE_MINUTES
     )
-
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
 from fastapi import Depends, HTTPException, status
@@ -92,10 +92,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             token,
             settings.JWT_SECRET,
             algorithms=[settings.JWT_ALGORITHM],
-            options={"verify_exp": settings.JWT_VERIFY_EXP}
+            options={"verify_exp": settings.JWT_VERIFY_EXP},
         )
-
-
 
         # 验证必要字段是否存在
         required_fields = ["sub", "user_id", "admin", "role"]
@@ -117,12 +115,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except Exception as e:
         print(e)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="服务器内部错误"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="服务器内部错误"
         )
-
-
-
 
 
 # # 同步测试函数
@@ -152,6 +146,5 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 #         print(f"验证失败: {e}")
 
 if __name__ == "__main__":
-    pass_word_hash = get_password_hash(password='mxs123')
+    pass_word_hash = get_password_hash(password="mxs123")
     print(pass_word_hash)
-
