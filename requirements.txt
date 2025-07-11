@@ -9,3 +9,5 @@ bcrypt~=4.3.0
 starlette~=0.46.2
 cryptography>=41.0.0
 aiomysql>=0.2.0
+pytz~=2025.2
+psutil~=7.0.0

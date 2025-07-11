@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 """
 @File    ：api/health_status/health.py
-@Date    ：2025/7/4 16:52 
+@Date    ：2025/7/4 16:52
 @Author  ：mxsleon
 @Website ：https://mxsleon.com
 """
@@ -18,9 +18,8 @@ from starlette import status
 from core.config import settings
 from schemas.health_status import StatusResponse, StatusEnum
 
-router = APIRouter(
-    tags=["系统健康状态检查"],
-    prefix="/system" )
+router = APIRouter(tags=["系统健康状态检查"], prefix="/system")
+
 
 def get_system_info() -> dict:
     """获取跨平台的系统信息"""
@@ -30,28 +29,30 @@ def get_system_info() -> dict:
         "release": platform.release(),
         "version": platform.version(),
         "machine": platform.machine(),
-        "processor": platform.processor()
+        "processor": platform.processor(),
     }
 
 
-@router.get("/health", response_model=StatusResponse,
-            status_code=status.HTTP_200_OK,
-            summary="服务器运行状态检查",
-            description="""
+@router.get(
+    "/health",
+    response_model=StatusResponse,
+    status_code=status.HTTP_200_OK,
+    summary="服务器运行状态检查",
+    description="""
 此接口用于：
 **检查服务器运行状态**
 
 **权限要求**:
 
 **注意**:
-                """
-            )
+                """,
+)
 async def health_check():
     """基础健康检查"""
     response = StatusResponse(
         status=StatusEnum.HEALTHY,
         timestamp=datetime.now(pytz.timezone(settings.TIMEZONE)).replace(tzinfo=None),
-        error=''
+        error="",
     )
 
     try:
@@ -65,7 +66,7 @@ async def health_check():
             "cpu_usage": cpu_percent,
             "memory_usage": mem.percent,
             "memory_available": f"{mem.available / (1024 ** 3):.2f} GB",
-            "processes": len(psutil.pids())
+            "processes": len(psutil.pids()),
         }
 
         # 添加警告机制
@@ -81,4 +82,3 @@ async def health_check():
         response.error = str(e)
 
     return response
-
