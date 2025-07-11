@@ -3,34 +3,33 @@
 from datetime import datetime
 from typing import Optional, Literal
 from db.db_config import db_settings
-from db.jinja2_env import  render_sql_template
+from db.jinja2_env import render_sql_template
 
 
 def get_sql_query_user(username):
-        """
-        :param username: 传入用户字符串
-        :return: 返回querysql,params元祖
-        """
+    """
+    :param username: 传入用户字符串
+    :return: 返回querysql,params元祖
+    """
 
-        table_name = db_settings.USER_TABLE
-        template_ = """
+    table_name = db_settings.USER_TABLE
+    template_ = """
         SELECT * FROM {{ table_name | sql_identifier }} 
         WHERE 1=1
         {% if username %}AND username = {{ username | sql_value }}{% endif %}
         """
 
-        return render_sql_template(template_, {
-            'username': username,
-            'table_name': table_name
-        })
+    return render_sql_template(
+        template_, {"username": username, "table_name": table_name}
+    )
 
 
 def update_sql_update_user(
-        id: str,
-        is_active: Optional[bool] = None,
-        last_login: Optional[datetime] = None,
-        login_attempts: Literal['plus', 'reset', None] = None,
-        locked_until: Optional[datetime] = None
+    id: str,
+    is_active: Optional[bool] = None,
+    last_login: Optional[datetime] = None,
+    login_attempts: Literal["plus", "reset", None] = None,
+    locked_until: Optional[datetime] = None,
 ) -> str:
     """
     更新用户信息并返回完整 SQL 语句
@@ -87,13 +86,16 @@ def update_sql_update_user(
     """
 
     # 渲染并返回 SQL
-    return render_sql_template(template_str, {
-        "table_name": table_name,
-        "update_fields": update_fields,
-        "login_attempts_expr": login_attempts_expr,
-        "id": id
-    })
+    return render_sql_template(
+        template_str,
+        {
+            "table_name": table_name,
+            "update_fields": update_fields,
+            "login_attempts_expr": login_attempts_expr,
+            "id": id,
+        },
+    )
 
 
 if __name__ == "__main__":
-    print(get_sql_query_user(username='123'))
+    print(get_sql_query_user(username="123"))

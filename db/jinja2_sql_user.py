@@ -35,16 +35,22 @@ def insert_into_new_user(username, password_hash, role, is_admin, is_active):
     {% if is_admin %}{{ is_admin | sql_value }}{% endif %}, 
     {% if is_active %}{{ is_active | sql_value }}{% endif %});"""
 
-    return render_sql_template(template_, {
-        'username': username,
-        'table_name': table_name,
-        'password_hash': password_hash,
-        'role': role,
-        'is_admin': is_admin,
-        'is_active': is_active,
-    })
+    return render_sql_template(
+        template_,
+        {
+            "username": username,
+            "table_name": table_name,
+            "password_hash": password_hash,
+            "role": role,
+            "is_admin": is_admin,
+            "is_active": is_active,
+        },
+    )
 
-def get_user_info_sql(username,id =None,query_type: Literal["exact", "fuzzy"]= "exact"):
+
+def get_user_info_sql(
+    username, id=None, query_type: Literal["exact", "fuzzy"] = "exact"
+):
     """
 
     :param id: 传入查找的uuid
@@ -53,7 +59,7 @@ def get_user_info_sql(username,id =None,query_type: Literal["exact", "fuzzy"]= "
     :return: 返回sql语句
     """
     if query_type == "fuzzy":
-        username =  f'%{username}%'
+        username = f"%{username}%"
 
     table_name = db_settings.USER_TABLE
     template_ = """
@@ -64,20 +70,24 @@ WHERE 1 = 1
 {% if username and  query_type == 'exact'%}AND username = {{ username | sql_value }}{% endif %}
 {% if username and  query_type == 'fuzzy'%}AND username LIKE {{ username | sql_value }}{% endif %};
     """
-    return render_sql_template(template_, {
-        'id': id,
-        'table_name': table_name,
-        'username': username,
-        'query_type': query_type,
-    })
+    return render_sql_template(
+        template_,
+        {
+            "id": id,
+            "table_name": table_name,
+            "username": username,
+            "query_type": query_type,
+        },
+    )
 
-def get_user_info_sql_all(role:RoleEnum):
+
+def get_user_info_sql_all(role: RoleEnum):
     """
 
     :param role:传入角色
     :return:
     """
-    role_list = [i.value for i in role.get_roles_with_lower_or_equal_weight() ]
+    role_list = [i.value for i in role.get_roles_with_lower_or_equal_weight()]
     role_list = tuple(role_list)
     table_name = db_settings.USER_TABLE
     template_ = """
@@ -86,12 +96,14 @@ FROM  {{ table_name | sql_identifier }}
 WHERE 1 = 1
 AND role in {{ role_list | sql_expression }};
     """
-    return render_sql_template(template_, {
-        'table_name': table_name,
-        'role_list':role_list
-    })
+    return render_sql_template(
+        template_, {"table_name": table_name, "role_list": role_list}
+    )
 
-def get_user_info_sql_other(username,role:RoleEnum,query_type: Literal["exact", "fuzzy"]= "exact"):
+
+def get_user_info_sql_other(
+    username, role: RoleEnum, query_type: Literal["exact", "fuzzy"] = "exact"
+):
     """
 
     :param username:
@@ -100,10 +112,10 @@ def get_user_info_sql_other(username,role:RoleEnum,query_type: Literal["exact", 
     :return:
     """
 
-    role_list = [i.value for i in role.get_roles_with_lower_or_equal_weight() ]
+    role_list = [i.value for i in role.get_roles_with_lower_or_equal_weight()]
     role_list = tuple(role_list)
     if query_type == "fuzzy":
-        username =  f'%{username}%'
+        username = f"%{username}%"
     table_name = db_settings.USER_TABLE
     template_ = """
 SELECT `id`,`username`,`role`,`is_admin`,`is_active`,`last_login`,`login_attempts`,`locked_until`,`created_at`,`updated_at`
@@ -112,21 +124,23 @@ WHERE role in {{ role_list | sql_expression }}
 {% if username and  query_type == 'exact'%}AND username = {{ username | sql_value }}{% endif %}
 {% if username and  query_type == 'fuzzy'%}AND username LIKE {{ username | sql_value }}{% endif %};
     """
-    return render_sql_template(template_, {
-        'table_name': table_name,
-        'role_list':role_list,
-        'username':username,
-        'query_type':query_type
-    })
-
+    return render_sql_template(
+        template_,
+        {
+            "table_name": table_name,
+            "role_list": role_list,
+            "username": username,
+            "query_type": query_type,
+        },
+    )
 
 
 def update_user_info_sql(
-        id: str,
-        username: str,
-        role: RoleEnum = None,
-        is_active: StatusEnum = None,
-        clean_locked: bool = False
+    id: str,
+    username: str,
+    role: RoleEnum = None,
+    is_active: StatusEnum = None,
+    clean_locked: bool = False,
 ):
     """
 
@@ -158,24 +172,19 @@ WHERE
     AND username = {{ username | sql_value }};
 """
     context = {
-        'table_name': table_name,
-        'id': id,
-        'username': username,
-        'role': role,
-        'is_active': is_active,
-        'clean_locked': clean_locked
+        "table_name": table_name,
+        "id": id,
+        "username": username,
+        "role": role,
+        "is_active": is_active,
+        "clean_locked": clean_locked,
     }
 
     # 渲染 SQL 模板
     return render_sql_template(template, context)
 
 
-
-def update_user_forget_password_sql(
-        id: str,
-        username: str,
-        clean_locked: bool = False
-):
+def update_user_forget_password_sql(id: str, username: str, clean_locked: bool = False):
     """
 
     :param id:
@@ -199,11 +208,11 @@ WHERE
     AND username = {{ username | sql_value }};
 """
     context = {
-        'table_name': table_name,
-        'id': id,
-        'username': username,
-        'password_hash': password_hash,
-        'clean_locked': clean_locked
+        "table_name": table_name,
+        "id": id,
+        "username": username,
+        "password_hash": password_hash,
+        "clean_locked": clean_locked,
     }
 
     # 渲染 SQL 模板
@@ -223,18 +232,15 @@ SELECT COUNT(1) as user_num
 FROM {{ table_name | sql_identifier }}
 WHERE username = {{ username | sql_value }};"""
 
-    context = {
-        'table_name': table_name,
-        'username': username
-    }
+    context = {"table_name": table_name, "username": username}
     # 渲染 SQL 模板
     return render_sql_template(template, context)
 
 
 def update_self_management_sql(
-        id: str,
-        new_username : str = None,
-        new_password:str = None,
+    id: str,
+    new_username: str = None,
+    new_password: str = None,
 ):
     """
 
@@ -255,17 +261,18 @@ WHERE
     id = {{ id | sql_value }};"""
 
     context = {
-        'table_name': table_name,
-        'id': id,
-        'new_username': new_username,
-        'new_password':new_password
+        "table_name": table_name,
+        "id": id,
+        "new_username": new_username,
+        "new_password": new_password,
     }
 
     # 渲染 SQL 模板
     return render_sql_template(template, context)
 
 
-
 if __name__ == "__main__":
-    sql = update_self_management_sql(id='19f7adca-50d2-11f0-b677-08bfb83e31a7',new_username='123')
+    sql = update_self_management_sql(
+        id="19f7adca-50d2-11f0-b677-08bfb83e31a7", new_username="123"
+    )
     print(sql)
