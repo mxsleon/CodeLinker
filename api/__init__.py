@@ -6,12 +6,8 @@ from .health_status import routers as health_status_router
 
 
 routers = [
-
-
     login_router,
-
 ]
-
 
 
 for r in health_status_router:
@@ -19,4 +15,3 @@ for r in health_status_router:
 
 for r in admin_user_router:
     routers.append(r)
-

@@ -2,19 +2,16 @@
 # mxsleon
 
 import uvicorn
-from db.database import  init_db, close_db
+from db.database import init_db, close_db
 from contextlib import asynccontextmanager
 from api import routers
 from core.config import settings
-from fastapi import  Request
+from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
-
-
-
 
 
 # 使用异步上下文管理器管理应用生命周期
@@ -43,10 +40,8 @@ app = FastAPI(
 )
 
 
-
 # 添加Gzip中间件压缩
 app.add_middleware(GZipMiddleware, minimum_size=500)
-
 
 
 # 循环汇总api中所有的分路由
@@ -56,6 +51,7 @@ for router in routers:
 
 # 挂载静态文件目录
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
 async def custom_swagger_ui_html(request: Request):
@@ -79,12 +75,8 @@ async def custom_swagger_ui_html(request: Request):
             "showCommonExtensions": True,
             "syntaxHighlight.theme": "dark",
             "tryItOutEnabled": True,
-        }
+        },
     )
-
-
-
-
 
 
 if __name__ == "__main__":
